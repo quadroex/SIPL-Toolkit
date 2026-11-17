@@ -1,0 +1,15 @@
+begin
+  R := 0;
+  I := A;
+  while I > 0 do
+  begin
+    J := B;
+    while J > 0 do
+    begin
+      R := R + 1;
+      J := J - 1
+    end;
+    I := I - 1
+  end
+end
+

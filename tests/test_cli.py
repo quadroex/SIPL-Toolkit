@@ -32,3 +32,14 @@ def test_json_syntax_error(tmp_path: Path, capsys: object) -> None:
     assert result["error"]["type"] == "SiplSyntaxError"
     assert result["error"]["line"] == 1
 
+
+def test_parse_can_write_json_file(tmp_path: Path, capsys: object) -> None:
+    source = tmp_path / "program.sipl"
+    output = tmp_path / "result" / "ast.json"
+    source.write_text("begin R := X + 1 end", encoding="utf-8")
+    assert main(["parse", str(source), "--output", str(output)]) == 0
+    captured = capsys.readouterr()
+    assert captured.out.startswith("Wrote")
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["type"] == "Program"
+

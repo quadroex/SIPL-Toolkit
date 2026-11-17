@@ -1,0 +1,10 @@
+begin
+  R := 1;
+  K := N;
+  while K > 0 do
+  begin
+    R := R * K;
+    K := K - 1
+  end
+end
+

@@ -42,6 +42,7 @@ py -3 -m venv .venv
 ```powershell
 sipl check examples\multiply.sipl
 sipl parse examples\multiply.sipl
+sipl parse examples\multiply.sipl --output out\ast.json
 sipl run examples\multiply.sipl --state X=4,Y=3
 sipl run examples\multiply.sipl --state X=4,Y=3 --json
 sipl trace examples\multiply.sipl --state X=4,Y=3
@@ -80,6 +81,8 @@ python -m build
 ```
 
 Проєкт не прив'язаний до конкретного варіанта практичної роботи. Він обробляє довільні програми в межах зафіксованої граматики SIPL.
+
+Додаткові програми для перевірки та захисту описані в [каталозі прикладів](examples/README.md).
 
 ## Документація
 

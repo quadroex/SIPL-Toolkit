@@ -1,0 +1,13 @@
+begin
+  if not X = 0 or Y > 0 then
+  begin
+    R := X + Y;
+    FLAG := 1
+  end
+  else
+  begin
+    R := 0;
+    FLAG := 0
+  end
+end
+

@@ -1,6 +1,10 @@
 # JSON-режим
 
-Команди `check`, `run`, `trace` і `term` підтримують параметр `--json`. Команда `parse` завжди повертає AST у JSON. Команда `tree` використовує `--format json`.
+Команди `check`, `run`, `trace` і `term` підтримують параметр `--json`. Команда `parse` завжди повертає AST у JSON і може записати його у файл через `--output`. Команда `tree` використовує `--format json`.
+
+```powershell
+sipl parse examples\multiply.sipl --output out\ast.json
+```
 
 Успішне виконання `run`
 

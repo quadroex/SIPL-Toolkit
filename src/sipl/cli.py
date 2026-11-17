@@ -30,6 +30,16 @@ def _source(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
+def _write_or_print(content: str, output: str | None) -> None:
+    if output:
+        path = Path(output)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        print(f"Wrote {path}")
+    else:
+        print(content)
+
+
 def _configure_streams() -> None:
     for stream in (sys.stdout, sys.stderr):
         reconfigure = getattr(stream, "reconfigure", None)
@@ -67,6 +77,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
     parse_command = commands.add_parser("parse", help="Print the AST as JSON")
     parse_command.add_argument("file")
+    parse_command.add_argument("--output")
 
     run = commands.add_parser("run", help="Execute a SIPL program")
     run.add_argument("file")
@@ -105,7 +116,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print("Syntax is valid.")
             return 0
         if args.command == "parse":
-            print(json.dumps(ast_to_dict(program), ensure_ascii=False, indent=2))
+            content = json.dumps(ast_to_dict(program), ensure_ascii=False, indent=2)
+            _write_or_print(content, args.output)
             return 0
         if args.command == "run":
             result = run_program(program, _state(args.state), args.max_steps)
@@ -157,11 +169,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "svg": lambda: tree_to_svg(tree, source),
             }
             content = exporters[args.format]()
-            if args.output:
-                Path(args.output).write_text(content, encoding="utf-8")
-                print(f"Wrote {args.output}")
-            else:
-                print(content)
+            _write_or_print(content, args.output)
             return 0
     except SiplSyntaxError as error:
         if getattr(args, "json", False):

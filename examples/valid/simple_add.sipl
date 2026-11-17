@@ -1,0 +1,4 @@
+begin
+  R := X + Y
+end
+
