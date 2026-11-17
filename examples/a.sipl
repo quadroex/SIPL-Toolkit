@@ -1,7 +1,0 @@
-begin
-    R := 0;
-    while X > 0 do
-    begin
-         R := R + Y
-    end
-end
