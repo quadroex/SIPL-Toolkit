@@ -1,0 +1,49 @@
+program: "begin" statement "end" -> program
+
+?statement: simple_statement (";" simple_statement)* -> sequence
+
+?simple_statement: assignment
+                 | if_statement
+                 | while_statement
+                 | block
+                 | skip
+
+assignment: NAME ":=" expression -> assignment
+if_statement: "if" condition "then" simple_statement "else" simple_statement -> if_statement
+while_statement: "while" condition "do" simple_statement -> while_statement
+block: "begin" statement "end" -> block
+skip: "skip" -> skip
+
+?condition: disjunction
+?disjunction: negation
+            | disjunction OR negation -> logical_or
+?negation: NOT negation -> logical_not
+         | comparison
+         | "(" condition ")" -> grouped_condition
+comparison: expression EQUAL expression -> equal
+          | expression GREATER expression -> greater
+
+?expression: sum
+?sum: product
+    | sum PLUS product -> add
+    | sum MINUS product -> subtract
+?product: atom
+        | product STAR atom -> multiply
+?atom: INT -> number
+     | NAME -> variable
+     | MINUS INT -> negative_number
+     | "(" expression ")" -> grouped_expression
+
+OR: "or" | "∨"
+NOT: "not" | "¬"
+EQUAL: "="
+GREATER: ">"
+PLUS: "+"
+MINUS: "-"
+STAR: "*"
+NAME: /(?!begin\b|end\b|if\b|then\b|else\b|while\b|do\b|skip\b|or\b|not\b)[A-Za-z_][A-Za-z0-9_]*/
+INT: /0|[1-9][0-9]*/
+
+%import common.WS
+%ignore WS
+

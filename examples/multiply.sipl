@@ -1,0 +1,10 @@
+begin
+  R := 0;
+  K := Y;
+  while K > 0 do
+  begin
+    R := R + X;
+    K := K - 1
+  end
+end
+
