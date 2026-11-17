@@ -1,4 +1,5 @@
 import json
+import xml.etree.ElementTree as element_tree
 from pathlib import Path
 
 from sipl.cli import main
@@ -23,9 +24,10 @@ def test_text_dot_and_svg_exports() -> None:
     svg = tree_to_svg(tree, SOURCE)
     assert "program [1:1]" in text
     assert "digraph SIPLParseTree" in dot
-    assert "1:1" in dot
+    assert "program\\n1:1" in dot
     assert svg.startswith("<svg")
     assert "program" in svg
+    assert element_tree.fromstring(svg).tag.endswith("svg")
 
 
 def test_tree_json_cli(tmp_path: Path, capsys: object) -> None:

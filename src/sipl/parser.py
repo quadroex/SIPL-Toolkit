@@ -109,7 +109,9 @@ class AstBuilder(Transformer[Any, Any]):
 
 class SiplParser:
     def __init__(self, grammar_path: Path | None = None) -> None:
-        path = grammar_path or Path(__file__).resolve().parents[2] / "grammar" / "sipl.lark"
+        packaged = Path(__file__).resolve().parent / "grammar" / "sipl.lark"
+        source = Path(__file__).resolve().parents[2] / "grammar" / "sipl.lark"
+        path = grammar_path or (packaged if packaged.exists() else source)
         grammar = path.read_text(encoding="utf-8")
         self._parser = Lark(
             grammar,

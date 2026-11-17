@@ -139,8 +139,9 @@ def tree_to_dot(value: Tree[Any] | Token, source: str) -> str:
     root = _visual_tree(value, source)
     lines = ["digraph SIPLParseTree {", "  rankdir=TB;", "  node [shape=box];"]
     for node in _flatten(root):
-        label = f"{node.label}\\n{node.line}:{node.column}\\n{node.fragment}"
-        label = label.replace("\\", "\\\\").replace('"', '\\"')
+        name = node.label.replace("\\", "\\\\").replace('"', '\\"')
+        fragment = node.fragment.replace("\\", "\\\\").replace('"', '\\"')
+        label = f"{name}\\n{node.line}:{node.column}\\n{fragment}"
         lines.append(f'  n{node.identifier} [label="{label}"];')
         for child in node.children:
             lines.append(f"  n{node.identifier} -> n{child.identifier};")

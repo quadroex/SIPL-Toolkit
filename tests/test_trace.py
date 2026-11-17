@@ -37,7 +37,9 @@ def test_trace_json_command(tmp_path: Path, capsys: object) -> None:
     path.write_text("begin X := 1 end", encoding="utf-8")
     assert main(["trace", str(path), "--json"]) == 0
     captured = capsys.readouterr()
-    events = json.loads(captured.out)
+    result = json.loads(captured.out)
+    events = result["events"]
+    assert result["ok"] is True
     assert events[-1]["event"] == "ProgramFinished"
     assert events[1]["event"] == "VariableChanged"
 

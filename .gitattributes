@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.lark text eol=lf
+*.sipl text eol=lf
+*.yml text eol=lf
+

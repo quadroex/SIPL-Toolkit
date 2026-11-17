@@ -1,5 +1,7 @@
 # SIPL Language Toolkit
 
+[![CI](https://github.com/quadroex/SIPL-Toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/quadroex/SIPL-Toolkit/actions/workflows/ci.yml)
+
 Навчальний набір інструментів для мови SIPL з курсу теорії програмування.
 
 ## Обрані завдання
@@ -17,9 +19,16 @@
 
 Загальна заявлена оцінка становить 10 балів.
 
-## Поточний стан
+## Реалізовані можливості
 
-Працюють граматика, парсер, власне AST, перевірка синтаксису, інтерпретатор, CLI, подієвий trace, дерево синтаксичного виводу та семантичні терми. Наступна версія розширює набір тестів і додає автоматичні перевірки.
+- граматика SIPL у форматі Lark;
+- власне типізоване AST з `SourceSpan`;
+- інтерпретатор із лімітом кроків;
+- подієвий trace у текстовому та JSON-форматах;
+- команди `check`, `parse`, `run`, `trace`, `term`, `tree`;
+- дерево синтаксичного виводу у text, JSON, DOT та SVG;
+- семантичні терми у позначеннях курсу;
+- автоматичні тести, перевірка типів, стилю та збірки в CI.
 
 ## Встановлення
 
@@ -34,6 +43,7 @@ py -3 -m venv .venv
 sipl check examples\multiply.sipl
 sipl parse examples\multiply.sipl
 sipl run examples\multiply.sipl --state X=4,Y=3
+sipl run examples\multiply.sipl --state X=4,Y=3 --json
 sipl trace examples\multiply.sipl --state X=4,Y=3
 sipl trace examples\multiply.sipl --state X=4,Y=3 --json
 sipl term examples\multiply.sipl
@@ -43,10 +53,13 @@ sipl tree examples\multiply.sipl --format dot --output out\tree.dot
 sipl tree examples\multiply.sipl --format svg --output out\tree.svg
 ```
 
-Очікуваний кінцевий стан для останньої команди
+Очікуваний кінцевий стан
 
-```json
-{"K": 0, "R": 12, "X": 4, "Y": 3}
+```text
+K = 0
+R = 12
+X = 4
+Y = 3
 ```
 
 ## Підтримуваний синтаксис
@@ -60,7 +73,20 @@ sipl tree examples\multiply.sipl --format svg --output out\tree.svg
 ## Тести
 
 ```powershell
-pytest
+python -m ruff check .
+python -m mypy src
+python -m pytest --cov=sipl --cov-report=term-missing
+python -m build
 ```
 
 Проєкт не прив'язаний до конкретного варіанта практичної роботи. Він обробляє довільні програми в межах зафіксованої граматики SIPL.
+
+## Документація
+
+- [Архітектура](docs/architecture.md)
+- [JSON-режим і коди завершення](docs/json.md)
+- [План демонстрації на захисті](docs/defense.md)
+
+## Обмеження
+
+Реалізовано базову версію SIPL із матеріалів курсу. Немає введення-виведення, процедур, складних типів і рекурсивних функцій. Складене тіло `if` або `while` потрібно оформлювати блоком `begin/end`.
