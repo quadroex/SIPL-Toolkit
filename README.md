@@ -19,7 +19,7 @@
 
 ## Поточний стан
 
-Працюють граматика, парсер, власне AST, перевірка синтаксису, інтерпретатор, CLI та подієвий trace. Наступні версії додають дерево синтаксичного виводу, семантичні терми та повний набір перевірок.
+Працюють граматика, парсер, власне AST, перевірка синтаксису, інтерпретатор, CLI, подієвий trace, дерево синтаксичного виводу та семантичні терми. Наступна версія розширює набір тестів і додає автоматичні перевірки.
 
 ## Встановлення
 
@@ -36,6 +36,11 @@ sipl parse examples\multiply.sipl
 sipl run examples\multiply.sipl --state X=4,Y=3
 sipl trace examples\multiply.sipl --state X=4,Y=3
 sipl trace examples\multiply.sipl --state X=4,Y=3 --json
+sipl term examples\multiply.sipl
+sipl tree examples\multiply.sipl --format text
+sipl tree examples\multiply.sipl --format json --output out\tree.json
+sipl tree examples\multiply.sipl --format dot --output out\tree.dot
+sipl tree examples\multiply.sipl --format svg --output out\tree.svg
 ```
 
 Очікуваний кінцевий стан для останньої команди
@@ -49,6 +54,8 @@ sipl trace examples\multiply.sipl --state X=4,Y=3 --json
 Підтримуються присвоювання, послідовне виконання, `if`, `while`, `begin/end`, `skip`, цілі числа, змінні, операції `+`, `-`, `*`, порівняння `=` і `>`, логічні операції `or`, `not`, `∨` та `¬`.
 
 Складене тіло розгалуження або циклу записується в блоці `begin/end`. Це усуває неоднозначність оператора послідовного виконання відповідно до пріоритетів конструкцій SIPL.
+
+Семантичні терми будуються рекурсивно з AST у позначеннях курсу `AS`, `IF`, `WH`, `S¹`, `S²`, `·` та `⇒`. Дерево синтаксичного виводу будується з реального результату парсингу. Кожен вузол містить позицію та відповідний фрагмент вихідного тексту.
 
 ## Тести
 

@@ -8,7 +8,9 @@ from sipl.ast import ast_to_dict
 from sipl.errors import SiplError
 from sipl.interpreter.runtime import run_program
 from sipl.interpreter.trace import format_event
-from sipl.parser import parse
+from sipl.parser import parse, parse_tree
+from sipl.semantics.terms import semantic_term
+from sipl.visualization.parse_tree import tree_to_dict, tree_to_dot, tree_to_svg, tree_to_text
 
 
 def _state(value: str) -> dict[str, int]:
@@ -48,6 +50,14 @@ def build_argument_parser() -> argparse.ArgumentParser:
     trace.add_argument("--max-steps", type=int, default=10_000)
     trace.add_argument("--json", action="store_true")
 
+    term = commands.add_parser("term", help="Build the semantic term")
+    term.add_argument("file")
+
+    tree = commands.add_parser("tree", help="Export the parse tree")
+    tree.add_argument("file")
+    tree.add_argument("--format", choices=["text", "json", "dot", "svg"], default="text")
+    tree.add_argument("--output")
+
     return parser
 
 
@@ -74,6 +84,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             else:
                 for event in result.trace:
                     print(format_event(event))
+            return 0
+        if args.command == "term":
+            print(semantic_term(program))
+            return 0
+        if args.command == "tree":
+            tree = parse_tree(source)
+            exporters = {
+                "text": lambda: tree_to_text(tree, source),
+                "json": lambda: json.dumps(
+                    tree_to_dict(tree, source), ensure_ascii=False, indent=2
+                ),
+                "dot": lambda: tree_to_dot(tree, source),
+                "svg": lambda: tree_to_svg(tree, source),
+            }
+            content = exporters[args.format]()
+            if args.output:
+                Path(args.output).write_text(content, encoding="utf-8")
+                print(f"Wrote {args.output}")
+            else:
+                print(content)
             return 0
     except SiplError as error:
         print(str(error), file=sys.stderr)
