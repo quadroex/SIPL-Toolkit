@@ -7,6 +7,7 @@ from pathlib import Path
 from sipl.ast import ast_to_dict
 from sipl.errors import SiplError
 from sipl.interpreter.runtime import run_program
+from sipl.interpreter.trace import format_event
 from sipl.parser import parse
 
 
@@ -41,6 +42,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
     run.add_argument("--state", default="")
     run.add_argument("--max-steps", type=int, default=10_000)
 
+    trace = commands.add_parser("trace", help="Execute a program and print trace events")
+    trace.add_argument("file")
+    trace.add_argument("--state", default="")
+    trace.add_argument("--max-steps", type=int, default=10_000)
+    trace.add_argument("--json", action="store_true")
+
     return parser
 
 
@@ -58,6 +65,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "run":
             result = run_program(program, _state(args.state), args.max_steps)
             print(json.dumps(result.state, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.command == "trace":
+            result = run_program(program, _state(args.state), args.max_steps)
+            if args.json:
+                events = [event.to_dict() for event in result.trace]
+                print(json.dumps(events, ensure_ascii=False, indent=2))
+            else:
+                for event in result.trace:
+                    print(format_event(event))
             return 0
     except SiplError as error:
         print(str(error), file=sys.stderr)

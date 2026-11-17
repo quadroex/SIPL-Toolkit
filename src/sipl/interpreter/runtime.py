@@ -14,17 +14,20 @@ from sipl.ast import (
     Program,
     Sequence,
     Skip,
+    SourceSpan,
     Statement,
     Variable,
     WhileStatement,
 )
 from sipl.errors import ExecutionLimitError, SiplRuntimeError, UndefinedVariableError
+from sipl.interpreter.trace import TraceEvent
 
 
 @dataclass(frozen=True, slots=True)
 class RuntimeResult:
     state: dict[str, int]
     steps: int
+    trace: tuple[TraceEvent, ...]
 
 
 class Interpreter:
@@ -32,44 +35,96 @@ class Interpreter:
         self.state = dict(state or {})
         self.max_steps = max_steps
         self.steps = 0
+        self.events: list[TraceEvent] = []
 
     def run(self, program: Program) -> RuntimeResult:
         self._execute(program.body)
-        return RuntimeResult(dict(self.state), self.steps)
+        self._event("ProgramFinished", None, self.state, self.state)
+        return RuntimeResult(dict(self.state), self.steps, tuple(self.events))
 
-    def _tick(self) -> None:
+    def _advance(self, span: SourceSpan | None = None) -> None:
         self.steps += 1
         if self.steps > self.max_steps:
+            self._event("StepLimitExceeded", span, self.state, self.state)
             raise ExecutionLimitError(self.max_steps)
 
+    def _event(
+        self,
+        event: str,
+        span: SourceSpan | None,
+        state_before: dict[str, int],
+        state_after: dict[str, int],
+        details: dict[str, object] | None = None,
+    ) -> None:
+        self.events.append(
+            TraceEvent(
+                event,
+                self.steps,
+                span,
+                dict(state_before),
+                dict(state_after),
+                dict(details or {}),
+            )
+        )
+
     def _execute(self, statement: Statement) -> None:
-        self._tick()
+        self._advance(statement.span)
+        before = dict(self.state)
+        self._event(
+            "BeforeStatement",
+            statement.span,
+            before,
+            before,
+            {"statement": type(statement).__name__},
+        )
         if isinstance(statement, Assignment):
-            self.state[statement.name] = self._expression(statement.expression)
-            return
-        if isinstance(statement, Sequence):
+            old_value = self.state.get(statement.name)
+            new_value = self._expression(statement.expression)
+            self.state[statement.name] = new_value
+            self._event(
+                "VariableChanged",
+                statement.span,
+                before,
+                self.state,
+                {"name": statement.name, "old": old_value, "new": new_value},
+            )
+        elif isinstance(statement, Sequence):
             for child in statement.statements:
                 self._execute(child)
-            return
-        if isinstance(statement, IfStatement):
+        elif isinstance(statement, IfStatement):
+            condition = self._checked_condition(statement.condition)
             branch = (
                 statement.then_branch
-                if self._condition(statement.condition)
+                if condition
                 else statement.else_branch
             )
             self._execute(branch)
-            return
-        if isinstance(statement, WhileStatement):
-            while self._condition(statement.condition):
+        elif isinstance(statement, WhileStatement):
+            while self._checked_condition(statement.condition):
                 self._execute(statement.body)
-                self._tick()
-            return
-        if isinstance(statement, Block):
+        elif isinstance(statement, Block):
             self._execute(statement.body)
-            return
-        if isinstance(statement, Skip):
-            return
-        raise SiplRuntimeError(f"Unsupported statement: {type(statement).__name__}")
+        elif not isinstance(statement, Skip):
+            raise SiplRuntimeError(f"Unsupported statement: {type(statement).__name__}")
+        self._event(
+            "AfterStatement",
+            statement.span,
+            before,
+            self.state,
+            {"statement": type(statement).__name__},
+        )
+
+    def _checked_condition(self, condition: Condition) -> bool:
+        self._advance(condition.span)
+        result = self._condition(condition)
+        self._event(
+            "ConditionChecked",
+            condition.span,
+            self.state,
+            self.state,
+            {"result": result},
+        )
+        return result
 
     def _expression(self, expression: Expression) -> int:
         if isinstance(expression, Number):
